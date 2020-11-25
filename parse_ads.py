@@ -10,6 +10,7 @@
 #so caveat emptor.
 
 import xlsxwriter
+import argparse
 
 
 def find_arg(line,start='{',stop='}'):
@@ -136,47 +137,63 @@ else:
     for line in lines:
         tot=tot+line
     lines=tot
-    
-ii=0
-authors={}
-npaper=0
-while True:
-    ans=find_next_key('author',lines,offset=ii)
-    if ans is None:
-        print('stopping after ',npaper,' papers')
-        break
-    else:
-        tag=ans[0]
-        ii=ans[1]
-        npaper=npaper+1
-    keys=split_line(tag)
-    for key in keys:
-        surname,prename=parse_author(key)
-        if len(prename)>0:
-            nm=surname+' '+prename[0]
-        #if nm in authors.keys():
-        #    authors[nm]=authors[nm]+1
-        #else:
-        #    authors[nm]=1
-        if nm in authors.keys():
-            if len(prename)>len(authors[nm]):
-                authors[nm]=prename
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument("-m","--min",nargs='+',type=int,default=0,help="Minimum number of authors per paper.",dest='nmin')
+    parser.add_argument("-M","--max",nargs='+',type=int,default=99999,help="Maximum number of authors per paper.",dest='nmax')
+    parser.add_argument("-f","--file",nargs='+',type=str,default='authors.xlsx',help='Output file name',dest='file')
+    args=parser.parse_args()
+    nmin=args.nmin
+    nmax=args.nmax
+    ofile=args.file
+    if isinstance(ofile,list):
+        ofile=ofile[0]
+    if isinstance(nmin,list):
+        nmin=nmin[0]
+    if isinstance(nmax,list):
+        nmax=nmax[0]
+    ii=0
+    authors={}
+    npaper=0
+    nused=0
+    while True:
+        ans=find_next_key('author',lines,offset=ii)
+        if ans is None:
+            print('stopping after ',npaper,' papers of which ',nused,' were parsed.')
+            break
         else:
-            authors[nm]=prename
+            tag=ans[0]
+            ii=ans[1]
+            npaper=npaper+1
+        keys=split_line(tag)
+        
+        nauthor=len(keys)
+        if (nauthor>=nmin)&(nauthor<nmax):
+            nused=nused+1
+            for key in keys:
+                surname,prename=parse_author(key)
+                if len(prename)>0:
+                    nm=surname+' '+prename[0]
+                if nm in authors.keys():
+                    if len(prename)>len(authors[nm]):
+                        authors[nm]=prename
+                else:
+                    authors[nm]=prename
+                    
 
 
+    workbook = xlsxwriter.Workbook(ofile)
+    worksheet = workbook.add_worksheet()
+    
+    keys=authors.keys()
 
-workbook = xlsxwriter.Workbook('authors.xlsx')
-worksheet = workbook.add_worksheet()
-
-keys=authors.keys()
-
-for i,key in enumerate(keys):
-    init=key[-1]
-    surname=key[:-1].strip()
-    name_use=surname+', '+authors[key]
-    worksheet.write('A'+repr(i+1),name_use)
+    for i,key in enumerate(keys):
+        init=key[-1]
+        surname=key[:-1].strip()
+        name_use=surname+', '+authors[key]
+        worksheet.write('A'+repr(i+1),name_use)
     #worksheet.write('B'+repr(i+1),init)
     #worksheet.write('C'+repr(i+1),authors[key])
     
-workbook.close()
+    workbook.close()
