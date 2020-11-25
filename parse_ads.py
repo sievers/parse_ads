@@ -143,6 +143,7 @@ if __name__=='__main__':
     parser.add_argument("-m","--min",nargs='+',type=int,default=0,help="Minimum number of authors per paper.",dest='nmin')
     parser.add_argument("-M","--max",nargs='+',type=int,default=99999,help="Maximum number of authors per paper.",dest='nmax')
     parser.add_argument("-f","--file",nargs='+',type=str,default='authors.xlsx',help='Output file name',dest='file')
+    parser.add_argument("-t","--text",nargs='+',type=str,default='',help='Output text file name',dest='tname')
     args=parser.parse_args()
     nmin=args.nmin
     nmax=args.nmax
@@ -153,6 +154,11 @@ if __name__=='__main__':
         nmin=nmin[0]
     if isinstance(nmax,list):
         nmax=nmax[0]
+    tname=args.tname
+    if isinstance(tname,list):
+        tname=tname[0]
+    if len(tname)==0:
+        tname is None
     ii=0
     authors={}
     npaper=0
@@ -187,12 +193,18 @@ if __name__=='__main__':
     worksheet = workbook.add_worksheet()
     
     keys=authors.keys()
+    if not(tname is None):
+        tfile=open(tname,'w')
 
     for i,key in enumerate(keys):
         init=key[-1]
         surname=key[:-1].strip()
         name_use=surname+', '+authors[key]
         worksheet.write('A'+repr(i+1),name_use)
+        if not(tname is None):
+            tfile.write(name_use+'\n')
+    if not(tname is None):
+        tfile.close()
     #worksheet.write('B'+repr(i+1),init)
     #worksheet.write('C'+repr(i+1),authors[key])
     
