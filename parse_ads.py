@@ -122,21 +122,21 @@ def parse_author(name):
     return surname,prename
     
 
-if True:
-    f=open('export-bibtex.bib')
-    lines=f.read()
-    f.close()
-    lines=lines.replace('\n',' ')
-else:
-    f=open('export-bibtex.bib')
-    lines=f.readlines()
-    f.close()
-    for i in range(len(lines)):
-        lines[i]=lines[i].strip()
-    tot=''
-    for line in lines:
-        tot=tot+line
-    lines=tot
+#if True:
+#    f=open('export-bibtex.bib')
+#    lines=f.read()
+#    f.close()
+#    lines=lines.replace('\n',' ')
+#else:
+#    f=open('export-bibtex.bib')
+#    lines=f.readlines()
+#    f.close()
+#    for i in range(len(lines)):
+#        lines[i]=lines[i].strip()
+#    tot=''
+#    for line in lines:
+#        tot=tot+line
+#    lines=tot
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
@@ -144,9 +144,13 @@ if __name__=='__main__':
     parser.add_argument("-M","--max",nargs='+',type=int,default=99999,help="Maximum number of authors per paper.",dest='nmax')
     parser.add_argument("-f","--file",nargs='+',type=str,default='authors.xlsx',help='Output file name',dest='file')
     parser.add_argument("-t","--text",nargs='+',type=str,default='',help='Output text file name',dest='tname')
+    parser.add_argument("-i","--input",nargs='+',type=str,default='export-bibtex.bib',help='Input bibtex file name',dest='input')
     args=parser.parse_args()
     nmin=args.nmin
     nmax=args.nmax
+    fname=args.input
+    if isinstance(fname,list):
+        fname=fname[0]
     ofile=args.file
     if isinstance(ofile,list):
         ofile=ofile[0]
@@ -158,7 +162,14 @@ if __name__=='__main__':
     if isinstance(tname,list):
         tname=tname[0]
     if len(tname)==0:
-        tname is None
+        tname=None
+
+    f=open(fname)
+    lines=f.read()
+    f.close()
+    lines=lines.replace('\n',' ')
+    lines=lines.replace(chr(9472),'-')
+
     ii=0
     authors={}
     npaper=0
@@ -194,6 +205,7 @@ if __name__=='__main__':
     
     keys=authors.keys()
     if not(tname is None):
+        print('tname is ',tname,'. ',len(tname))
         tfile=open(tname,'w')
 
     for i,key in enumerate(keys):
